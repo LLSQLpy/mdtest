@@ -1,0 +1,20 @@
+gmx pdb2gmx -f ala5.pdb -o ala5_processed.gro -p ala5.top -ignh -ter
+gmx editconf -f ala5_processed.gro -o ala5_box.gro -c -d 1.0 -bt cubic
+gmx solvate -cp ala5_box.gro -cs spc216.gro -o ala5_solv.gro -p ala5.top
+gmx grompp -f minim.mdp -c ala5_solv.gro -p ala5.top -o em.tpr
+gmx mdrun -deffnm em
+gmx grompp -f nvt.mdp -c em.gro -r em.gro -p ala5.top -o nvt.tpr
+gmx mdrun -deffnm nvt
+gmx grompp -f npt.mdp -c nvt.gro -r nvt.gro -p ala5.top -o npt.tpr
+gmx mdrun -deffnm npt
+gmx grompp -f md.mdp -c npt.gro -p ala5.top -o md.tpr
+gmx mdrun -deffnm md
+gmx rms -f md.xtc -s md.tpr -o RMSD.xvg -tu ns
+gmx gyrate -f md.xtc -s md.tpr -o GYRATE.xvg
+gmx rama -f md.xtc -s md.tpr -o RAMA.xvg
+gmx msd -f md.xtc -s md.tpr -o MSD.xvg
+gmx trjconv -f md.xtc -s md.tpr -o ala5_md.pdb -pbc mol -center -ur compact
+xmgrace RMSD.xvg
+xmgrace GYRATE.xvg
+xmgrace MSD.xvg
+pymol ala5_md.pdb
